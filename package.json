@@ -1,0 +1,25 @@
+{
+  "name": "cog-leaderboard",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "repository": "git@github.com:reitenichiekusudev/cog-leaderboard.git",
+  "author": "reitenichiekusudev <suyangsong@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "start": "tsc && node ./dist/src/index.js"
+  },
+  "dependencies": {
+    "@types/node": "^20.11.6",
+    "@urql/core": "^4.2.3",
+    "graphql": "^16.8.1",
+    "typescript": "^5.3.3",
+    "urql": "^4.0.6",
+    "viem": "^2.7.0"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^5.0.0",
+    "@graphql-codegen/client-preset": "^4.1.0"
+  }
+}

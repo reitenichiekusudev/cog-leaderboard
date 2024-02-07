@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "resolveJsonModule": true,
+        "allowJs": true,
+        "skipLibCheck": true,
+        "target": "ESNext",
+        "sourceMap": true,
+        "outDir": "dist",
+    },
+    "include": ["src/**/*"],
+}
