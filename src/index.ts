@@ -1,6 +1,6 @@
 import { Client, cacheExchange, fetchExchange } from '@urql/core';
 import { allowedPairs } from './addressHelper.js';
-import { checkDepositMulti, filterUniqueTokens, getCurrentBlock, getPrices, setPoints } from './leaderboardActions.js';
+import { checkDepositMulti, filterUniqueTokens, getCurrentBlock, getPrices, setPoints, calculateTop100 } from './leaderboardActions.js';
 import { serializeUsers } from './dbActions.js';
 
 const client = new Client({
@@ -102,20 +102,19 @@ for (let o = 0; o < users.length; o++) {
 // console.log('0x6D2F1432cbb1De3435aC2cE4426bBe9c011b0E75'.toLowerCase())
 // console.log(users.find((e) => e.user === '0x6D2F1432cbb1De3435aC2cE4426bBe9c011b0E75'.toLowerCase()))
 
-console.log(users[0])
-const usersResult = serializeUsers(users)
-console.log(usersResult.splice(0, 6))
 
-// let tokens = filterUniqueTokens(users)
-// console.log(tokens)
-// const block: bigint = await getCurrentBlock()
-// const priceinfos = await getPrices(block, tokens)
-// const allSnapshots = await checkDepositMulti(users, block)
-// await setPoints(allSnapshots, priceinfos)
-// console.log(users[0])
-// console.log(users.reduce((acc, el) => acc + el.points, 0n))
-// console.log(users.find((e) => e.user === '0x6D2F1432cbb1De3435aC2cE4426bBe9c011b0E75'.toLowerCase()))
-//// update users on DB
+let tokens = filterUniqueTokens(users)
+console.log(tokens)
+const block: bigint = await getCurrentBlock()
+const priceinfos = await getPrices(block, tokens)
+const allSnapshots = await checkDepositMulti(users, block)
+await setPoints(allSnapshots, priceinfos)
+
+console.log(users[0])
+console.log(users.reduce((acc, el) => acc + el.points, 0n))
+console.log(users.find((e) => e.user === '0x6D2F1432cbb1De3435aC2cE4426bBe9c011b0E75'.toLowerCase()))
+const top100users = calculateTop100(users)
+console.log(top100users)
 // for (let i = 0; i < borrows.length; i++) {
 //     if (!users.find(e => e && e.user === borrows[i]._from)) {
 //         users.push({ user: borrows[i]._from, borrowPairs: [] })

@@ -9,6 +9,11 @@ export async function updateHandler(req, res) {
         user: 'postgres',
         password: 'i9n3??AxnP5TqLnB',
     })
+    await client.connect()
+    let tableName = "leaderboards"
+
+
+    await client.end()
 }
 
 export function serializeUsers(users) {
@@ -22,4 +27,11 @@ export function serializeUsers(users) {
     const usersProcessed = usersinter.map((e) => JSON.stringify(e))
 
     return usersProcessed
+}
+
+export async function insertUsers(users) {
+}
+
+export function insertLeaderboard(users) {
+
 }

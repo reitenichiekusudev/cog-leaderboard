@@ -112,44 +112,12 @@ export const getPrices = async (block: bigint, tokens: Address[]) => {
     }
     return tokenInfos
 }
-
-
-//   // https://blockscout.scroll.io/address/0xcA11bde05977b3631167028862bE2a173976CA11
-
-//   // fetch mult
-//   publicClient.multicall({
-//     contracts: multicallPairContracts,
-//     // @ts-ignore
-//     multicallAddress: contractsConfig.Multicall.address
-//   }).then((results: any) => {
-//     const multicallTokens = []
-//     const totalAssetsArray = []
-//     const exchangeRates = []
-//     const interestRates = []
-//     for (let i = 0; i < results.length; i += 5) {
-//       multicallTokens.push({
-//         address: results[i].result,
-//         abi: contractsConfig["ERC20"].abi.abi,
-//         functionName: 'symbol'
-//       })
-//       multicallTokens.push({
-//         address: results[i].result,
-//         abi: contractsConfig["ERC20"].abi.abi,
-//         functionName: 'decimals'
-//       })
-//       multicallTokens.push({
-//         address: results[i + 1].result,
-//         abi: contractsConfig["ERC20"].abi.abi,
-//         functionName: 'symbol'
-//       })
-//       multicallTokens.push({
-//         address: results[i + 1].result,
-//         abi: contractsConfig["ERC20"].abi.abi,
-//         functionName: 'decimals'
-//       })
-//       totalAssetsArray.push(results[i + 2].result)
-//       exchangeRates.push(results[i + 3].result[1])
-//       interestRates.push(
-//         Number(results[i + 4].result['interest_per_second']) * (60 * 60 * 24 * 365) / 1000000000000000000
-//       )
-//     }
+export const calculateTop100 = (users) => {
+    return users.sort((a, b) => {
+        if (a.points < b.points)
+            return 1
+        else if (a.points > b.points)
+            return -1
+        return 0
+    }).slice(0, 200)
+}
