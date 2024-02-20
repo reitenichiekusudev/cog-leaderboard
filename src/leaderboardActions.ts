@@ -112,12 +112,14 @@ export const getPrices = async (block: bigint, tokens: Address[]) => {
     }
     return tokenInfos
 }
-export const calculateTop100 = (users) => {
-    return users.sort((a, b) => {
+export const calculateTop200 = (users) => {
+    const sortedUsers = users.sort((a, b) => {
         if (a.points < b.points)
             return 1
         else if (a.points > b.points)
             return -1
         return 0
     }).slice(0, 200)
+    const finalUsers = sortedUsers.map((e, idx) => ({ ...e, rank: idx + 1 }))
+    return finalUsers
 }

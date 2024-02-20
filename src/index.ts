@@ -1,7 +1,7 @@
 import { Client, cacheExchange, fetchExchange } from '@urql/core';
 import { allowedPairs } from './addressHelper.js';
-import { checkDepositMulti, filterUniqueTokens, getCurrentBlock, getPrices, setPoints, calculateTop100 } from './leaderboardActions.js';
-import { serializeUsers } from './dbActions.js';
+import { checkDepositMulti, filterUniqueTokens, getCurrentBlock, getPrices, setPoints, calculateTop200 } from './leaderboardActions.js';
+import { insertLeaderboard, serializeUsers, updateHandler } from './dbActions.js';
 
 const client = new Client({
     url: 'https://api.studio.thegraph.com/query/63781/cog-factory/version/latest',
@@ -110,11 +110,11 @@ const priceinfos = await getPrices(block, tokens)
 const allSnapshots = await checkDepositMulti(users, block)
 await setPoints(allSnapshots, priceinfos)
 
-console.log(users[0])
 console.log(users.reduce((acc, el) => acc + el.points, 0n))
 console.log(users.find((e) => e.user === '0x6D2F1432cbb1De3435aC2cE4426bBe9c011b0E75'.toLowerCase()))
-const top100users = calculateTop100(users)
-console.log(top100users)
+const top200users = calculateTop200(users)
+await insertLeaderboard(top200users)
+
 // for (let i = 0; i < borrows.length; i++) {
 //     if (!users.find(e => e && e.user === borrows[i]._from)) {
 //         users.push({ user: borrows[i]._from, borrowPairs: [] })
