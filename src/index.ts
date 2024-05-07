@@ -8,9 +8,9 @@ const client = new Client({
     exchanges: [cacheExchange, fetchExchange],
 });
 
-const FIRST_DEPOSIT_BN = '86140'
+const FIRST_DEPOSIT_BN = '3147376'
 const allowedPairsLC = allowedPairs.map((e) => e.toLowerCase())
-const FIRST_BORROW_BN = '86270'
+const FIRST_BORROW_BN = '3147376'
 const DEPOSIT_QUERY = `
 query MyQuery($lastBN: BigInt) {
     deposits(first: 1000, orderBy: blockNumber, where: { blockNumber_gt: $lastBN }) {
@@ -60,6 +60,7 @@ async function query(Type, blockNumber) {
 let deposits = []
 let depositResult = await query("Deposit", FIRST_DEPOSIT_BN)
 deposits.push(...depositResult.data.deposits)
+console.log(deposits)
 
 let borrows = []
 let borrowResult = await query("Borrow", FIRST_BORROW_BN)
@@ -99,21 +100,22 @@ for (let o = 0; o < users.length; o++) {
 
     }
 }
+console.log(users)
 // console.log('0x6D2F1432cbb1De3435aC2cE4426bBe9c011b0E75'.toLowerCase())
-// console.log(users.find((e) => e.user === '0x6D2F1432cbb1De3435aC2cE4426bBe9c011b0E75'.toLowerCase()))
-
-
-let tokens = filterUniqueTokens(users)
-console.log(tokens)
-const block: bigint = await getCurrentBlock()
-const priceinfos = await getPrices(block, tokens)
-const allSnapshots = await checkDepositMulti(users, block)
-await setPoints(allSnapshots, priceinfos)
-
-console.log(users.reduce((acc, el) => acc + el.points, 0n))
 console.log(users.find((e) => e.user === '0x6D2F1432cbb1De3435aC2cE4426bBe9c011b0E75'.toLowerCase()))
-const top200users = calculateTop200(users)
-await insertLeaderboard(top200users)
+
+
+// let tokens = filterUniqueTokens(users)
+// console.log(tokens)
+// const block: bigint = await getCurrentBlock()
+// const priceinfos = await getPrices(block, tokens)
+// const allSnapshots = await checkDepositMulti(users, block)
+// await setPoints(allSnapshots, priceinfos)
+
+// console.log(users.reduce((acc, el) => acc + el.points, 0n))
+// console.log(users.find((e) => e.user === '0x6D2F1432cbb1De3435aC2cE4426bBe9c011b0E75'.toLowerCase()))
+// const top200users = calculateTop200(users)
+//await insertLeaderboard(top200users)
 
 // for (let i = 0; i < borrows.length; i++) {
 //     if (!users.find(e => e && e.user === borrows[i]._from)) {
