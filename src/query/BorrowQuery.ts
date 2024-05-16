@@ -1,7 +1,6 @@
 import { IQueryInterface, IURQLClient } from "../interfaces/query.js";
 import { Client } from "@urql/core";
-import { cacheExchange, fetchExchange } from '@urql/core';
-export class DepositQuery implements IQueryInterface {
+export class BorrowQuery implements IQueryInterface {
     private queryString: string
     private client: Client
     constructor(querystring: string, client: Client) {
