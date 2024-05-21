@@ -1,5 +1,5 @@
-import ICogPairABI from "./ICogPair.sol/ICogPair.json" assert {type: 'json'};
-import ICogFactoryABI from "./ICogPair.sol/ICogFactory.json" assert {type: 'json'};
+import ICogPairABI from "./ICogPair.sol/ICogPair.json" with {type: "json"};
+import ICogFactoryABI from "./ICogPair.sol/ICogFactory.json" with {type: "json"};
 import IAggregatorV3ABI from "./IAggregatorV3/IAggregatorV3.js"
 import { Address } from "viem";
 // import { erc20ABI } from "wagmi";

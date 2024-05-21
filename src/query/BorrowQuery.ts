@@ -7,7 +7,7 @@ export class BorrowQuery implements IQueryInterface {
         this.queryString = querystring
         this.client = client
     }
-    async query(blockNumber: string): Promise<any> {
+    async query(blockNumber: string | Number): Promise<any> {
         try {
             const result = await this.client.query(this.queryString, { lastBN: blockNumber });
             return result

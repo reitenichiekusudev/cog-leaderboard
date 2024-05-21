@@ -1,25 +1,20 @@
 import { createPublicClient, http, getContract, Address } from "viem";
+import { User } from "./users/user.js";
 import { scroll } from "viem/chains";
 import contractsConfig from "../contracts/index.js";
 import { TokenAddresses } from "./addressHelper.js";
+import { pairObject } from "./pairs/pairObject.js";
 
 const publicClient = createPublicClient({
     chain: scroll,
-    transport: http("https://scroll-mainnet-public.unifra.io"),
+    transport: http("https://smart-yolo-county.scroll-mainnet.quiknode.pro/256f70add7d45776833c8fd4938fc52f87d35358/"),
 });
-type user = {
-    user: string;
-    depositPairs: object[];
-    borrowPairs: string[];
-    points: number;
-    setPoints: Function;
-};
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export const checkDepositMulti = async (users: user[], blockNumber: bigint) => {
+export const checkDepositMulti = async (users: User[], blockNumber: bigint) => {
     let multicallPairContracts = [];
-    let balances = [];
+    let balances: pairObject[] = [];
     let counter = 0;
     let results = [];
     for (const user of users) {
@@ -27,10 +22,10 @@ export const checkDepositMulti = async (users: user[], blockNumber: bigint) => {
     }
     for (const balance of balances) {
         multicallPairContracts.push({
-            address: balance.pair,
+            address: balance.pairAddress,
             abi: contractsConfig["ICogPair"].abi.abi,
             functionName: "balanceOf",
-            args: [balance.userAddr],
+            args: [balance.userAddress],
         });
         counter++;
         if (counter % 1000 === 0 || counter === balances.length) {
@@ -44,45 +39,94 @@ export const checkDepositMulti = async (users: user[], blockNumber: bigint) => {
             results.push(...chunkResults.map((element) => element.result));
             console.log("chunk processed");
             multicallPairContracts = [];
-            await sleep(100);
+            await sleep(300);
         }
     }
-    return (balances = balances.map((e, idx) => ({
-        ...e,
-        tokenBalance: results[idx] ? results[idx] : 0n,
-    })));
+    return (balances = balances.map((e, idx) => {
+        e.tokenSnapshotBalance = results[idx] ? results[idx] : 0n
+        return e
+    }));
+    //@ts-ignore
+};
+export const checkBorrowsMulti = async (users: User[], blockNumber: bigint) => {
+    let multicallPairContracts = [];
+    let balances: pairObject[] = [];
+    let counter = 0;
+    let results = [];
+    for (const user of users) {
+        balances.push(...user.borrowPairs);
+    }
+    for (const balance of balances) {
+        multicallPairContracts.push({
+            address: balance.pairAddress,
+            abi: contractsConfig["ICogPair"].abi.abi,
+            functionName: "user_borrow_part",
+            args: [balance.userAddress],
+        });
+        counter++;
+        if (counter % 1000 === 0 || counter === balances.length) {
+            console.log("chunk processing started");
+            //@ts-ignore
+            let chunkResults = await publicClient.multicall({
+                contracts: multicallPairContracts,
+                multicallAddress: contractsConfig.Multicall.address,
+                blockNumber: blockNumber,
+            });
+            results.push(...chunkResults.map((element) => element.result));
+            console.log("chunk processed");
+            multicallPairContracts = [];
+            await sleep(300);
+        }
+    }
+    return (balances = balances.map((e, idx) => {
+        e.tokenSnapshotBalance = results[idx] ? results[idx] : 0n
+        return e
+    }));
     //@ts-ignore
 };
 
-export const setPoints = (allPairBalances, currentPrices) => {
+
+export const setDepositPoints = (allPairBalances: pairObject[], currentPrices) => {
     for (const pair of allPairBalances) {
         let pairExchangeInfo = {
-            ...currentPrices.find((e) => e.address === pair.depositToken),
+            ...currentPrices.find((e) => e.address === pair.Token),
         };
         const pairpoints =
-            (pair.tokenBalance * pairExchangeInfo.exchangePrice) /
+            (pair.tokenSnapshotBalance * pairExchangeInfo.exchangePrice) /
             pairExchangeInfo.CHAINLINK_DIV;
         //$1 = 1 point
-        pair.pairPointsSetter(pairpoints);
         pair.userPointsSetter(pairpoints);
     }
 };
-export const filterUniqueTokens = (users) => {
-    const seenTokens = {};
-    let userDepositPairs = [];
-    for (const user of users) {
-        userDepositPairs.push(...user.depositPairs);
+export const setBorrowPoints = (allPairBalances: pairObject[], currentPrices) => {
+    for (const pair of allPairBalances) {
+        let pairExchangeInfo = {
+            ...currentPrices.find((e) => e.address === pair.Token),
+        };
+        const pairpoints =
+            (pair.tokenSnapshotBalance * pairExchangeInfo.exchangePrice) /
+            pairExchangeInfo.CHAINLINK_DIV;
+        //$1 = 1 point
+        pair.userPointsSetter(pairpoints);
     }
-    let uniqueTokens = userDepositPairs
+};
+export const filterUniqueTokens = (users: User[]) => {
+    const seenTokens = {};
+    let userPairs: pairObject[] = [];
+    for (const user of users) {
+        userPairs.push(...user.depositPairs);
+        userPairs.push(...user.borrowPairs);
+    }
+    let uniqueTokens = userPairs
         .filter((item) => {
-            if (seenTokens[item.depositToken]) return false;
+            if (seenTokens[item.Token]) return false;
             else {
-                seenTokens[item.depositToken] = true;
+                seenTokens[item.Token] = true;
                 return true;
             }
         })
-        .map((el) => el.depositToken);
-    return uniqueTokens;
+        .map((el) => el.Token);
+    return uniqueTokens as Array<Address>;
 };
 export const getCurrentBlock = async () => await publicClient.getBlockNumber();
 
@@ -98,6 +142,7 @@ export const getPrices = async (block: bigint, tokens: Address[]) => {
             functionName: "latestRoundData",
             blockNumber: block,
         });
+        console.log(address.feedAddress)
     }
     //@ts-ignore
     const priceMultiResult = await publicClient.multicall({
@@ -117,6 +162,7 @@ export const getPrices = async (block: bigint, tokens: Address[]) => {
                 functionName: "latestRoundData",
                 blockNumber: block,
             });
+            console.log(result)
             token.exchangePrice = token.exchangePrice * result[1];
         }
     }
