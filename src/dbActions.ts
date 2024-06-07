@@ -37,16 +37,50 @@ export function serializeUsers(users) {
     (BigInt.prototype as any).toJSON = function () {
         return this.toString();
     };
-    const usersinter = users.map(({ depositPairs, ...rest }) => ({
-        ...rest,
-        depositPairs: depositPairs.map(({ userPointsSetter, pairPointsSetter, ...rest }) => ({ ...rest })),
-    }))
-    const usersProcessed = usersinter.map((e) => JSON.stringify(e))
+    const usersProcessed = users.map((e) => JSON.stringify(e))
 
     return usersProcessed
 }
+export async function updateUsers(address, newPoints, newSnapshot, newBlock) {
+    const query = `WITH updated_user AS (
+    SELECT 
+      address,
+      jsonb_set(
+        jsonb_set(
+          jsonb_set(
+            json_data, 
+            '{v2_points}', 
+            to_jsonb($2::text)  -- New value for v2_points
+          ), 
+          '{block}', 
+          to_jsonb($3::text)  -- New value for block
+        ),
+        '{v2_snapshots}',
+        (SELECT to_jsonb(array_append(jsonb_array_elements_text(json_data->'v2_snapshots'), $4::text)) FROM users WHERE address = $1)
+      ) AS json_data
+    FROM users
+    WHERE address = $1
+  )
+  INSERT INTO users (address, json_data)
+  SELECT address, json_data
+  FROM updated_user
+  ON CONFLICT (address) DO UPDATE
+  SET json_data = EXCLUDED.json_data;`;
+
+
+    try {
+        await client.query(query, [address, newPoints, newBlock, newSnapshot])
+        console.log('User data updated successfully')
+    } catch (err) {
+        console.log('Error updating user data:', err)
+    } finally {
+        await client.end();
+    }
+
+}
 
 export async function insertUsers(users) {
+    const query = ['INSERT INTO users(address, json_data) VALUES']
 }
 
 export async function insertLeaderboard(users) {

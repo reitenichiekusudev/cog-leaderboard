@@ -48,6 +48,7 @@ export const checkDepositMulti = async (users: User[], blockNumber: bigint) => {
     }));
     //@ts-ignore
 };
+
 export const checkBorrowsMulti = async (users: User[], blockNumber: bigint) => {
     let multicallPairContracts = [];
     let balances: pairObject[] = [];
